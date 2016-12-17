@@ -1,5 +1,7 @@
 /*
-Adafruit Arduino - Lesson 3. RGB LED
+  ToiLite Controller
+
+  Author: Flavio Caetano
 */
 
 typedef struct RGB {
@@ -21,28 +23,19 @@ int isFixed = LOW;
 
 RGB color;
 
-//int POT = A0;
-//int LDR = A1;
-
 void setup()
 {
-//  Serial.begin(9600);
-
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 
   pinMode(BUTTON, INPUT);
-//  pinMode(POT, INPUT);
-//  pinMode(LDR, INPUT);
 }
 
 void loop()
 {
   for (int i = 0; i < 3600; i++) {
     int button = digitalRead(BUTTON);
-//    int ldr = analogRead(LDR);
-//    int pot = analogRead(POT);
 
     if (button == HIGH && buttonPreviousRead != HIGH) {
       isFixed = !isFixed;
@@ -50,16 +43,11 @@ void loop()
 
     buttonPreviousRead = button;
 
-//    if (ldr < pot) {
-      if (!isFixed) {
-        color = rgb(i/10);
-      }
-      
-      setColor(color);
-//    }
-//    else {
-//      setColor({0, 0, 0});
-//    }
+    if (!isFixed) {
+      color = rgb(i / 10);
+    }
+
+    setColor(color);
 
     delay(10);
   }

@@ -12,7 +12,8 @@ A night light that lights up your toilette when you enter your restroom. Inspire
 - 1 Push button
 - 1 Timpot (10k)
 - 2 100R Resistor
-- 1 150R Resistor
+- 2 150R Resistor
+- 2 N-Type Mosfet (2N7000)
 
 ![Schematics](https://github.com/fjcaetano/ToiLite/raw/master/toilite_schem.png)
 
@@ -20,7 +21,7 @@ The schematics and prototyping are using an ATTiny85 as microcontroller for the 
 
 
 ### TODO
-- [ ] Hook up the PIR
+- [x] Hook up the PIR
 - [ ] Wire it up in a perfboard
 - [ ] Make a housing for the product
 - [ ] Install on a toilette
