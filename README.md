@@ -5,14 +5,14 @@ A night light that lights up your toilette when you enter your restroom. Inspire
 
 
 ### Partlist:
-. 1 ATTiny85
-. 1 RGB LED
-. 1 LDR Sensor
-. 1 PIR Sensor
-. 1 Push button
-. 1 Timpot (10k)
-. 2 100R Resistor
-. 1 150R Resistor
+- 1 ATTiny85
+- 1 RGB LED
+- 1 LDR Sensor
+- 1 PIR Sensor
+- 1 Push button
+- 1 Timpot (10k)
+- 2 100R Resistor
+- 1 150R Resistor
 
 ![Schematics](https://github.com/fjcaetano/ToiLite/raw/master/toilite_schem.png)
 
