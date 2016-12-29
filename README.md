@@ -21,8 +21,8 @@ The schematics and prototyping are using an ATTiny85 as microcontroller for the 
 
 ### Perfboard
 
-![Perfboard front](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_front.png)
-![Perfboard back](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_back.png)
+![Perfboard front](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_front.jpg)
+![Perfboard back](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_back.jpg)
 
 
 ### TODO
