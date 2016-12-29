@@ -13,23 +13,28 @@ typedef struct RGB {
 RGB rgb(int h);
 void setColor(RGB rgb);
 
-const int redPin = 4; // PIN 3
-const int bluePin = 0; // PIN 5
-const int greenPin = 1; // PIN 6
+const int redPin = 11; // PIN 3
+const int bluePin = 10; // PIN 5
+const int greenPin = 9  ; // PIN 6
 
 const int BUTTON = 2; // PIN 7
 int buttonPreviousRead = LOW;
-int isFixed = LOW;
+int isFixed = false;
+
+const int PIR = 4;
 
 RGB color;
 
 void setup()
 {
+  Serial.begin(9600);
+  
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 
   pinMode(BUTTON, INPUT);
+  pinMode(PIR, INPUT);
 }
 
 void loop()
@@ -42,6 +47,11 @@ void loop()
     }
 
     buttonPreviousRead = button;
+
+    Serial.println(digitalRead(PIR));
+    Serial.print(button);
+    Serial.print(" - ");
+    Serial.println(isFixed);
 
     if (!isFixed) {
       color = rgb(i / 10);

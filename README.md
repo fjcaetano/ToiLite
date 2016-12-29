@@ -19,9 +19,15 @@ A night light that lights up your toilette when you enter your restroom. Inspire
 
 The schematics and prototyping are using an ATTiny85 as microcontroller for the final product, but it can be easily exchanged for an Arduino board for tests.
 
+### Perfboard
+
+![Perfboard front](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_front.png)
+![Perfboard back](https://github.com/fjcaetano/ToiLite/raw/master/perfboard_back.png)
+
 
 ### TODO
 - [x] Hook up the PIR
-- [ ] Wire it up in a perfboard
+- [x] Wire it up in a perfboard
+- [ ] Power source
 - [ ] Make a housing for the product
 - [ ] Install on a toilette
