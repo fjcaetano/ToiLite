@@ -15,7 +15,7 @@ typedef struct RGB {
 RGB rgb(int h);
 void setColorFromAngle(int angle);
 void button_pressed();
-void loop_colors();
+void loop_colors(int startAngle);
 
 const int RED_PIN = 4; // PIN 3
 const int GREEN_PIN = 1; // PIN 6
@@ -34,6 +34,8 @@ void setup()
 
   pinMode(BUTTON, INPUT);
 
+  randomSeed(analogRead(0));
+
   // FOR ATTINY85
   GIMSK = 0b00100000;    // turns on pin change interrupts
   PCMSK = 0b00000100;    // turn on interrupts on pins PB2
@@ -42,13 +44,13 @@ void setup()
   int addr0 = EEPROM.read(0);
   int addr1 = EEPROM.read(1);
 
-  int storedAngle = (addr0 + (addr1 << 8));
-  setColorFromAngle(storedAngle);
+  currentAngle = (addr0 + (addr1 << 8));
+  setColorFromAngle(currentAngle);
 
   attachInterrupt(digitalPinToInterrupt(BUTTON), button_pressed, RISING);
 
-  if (storedAngle == 0) {
-    loop_colors();
+  if (currentAngle == 0) {
+    loop_colors(random(360));
   }
 }
 
@@ -69,14 +71,14 @@ void button_pressed() {
     EEPROM.write(0, 0);
     EEPROM.write(1, 0);
 
-    loop_colors();
+    loop_colors(currentAngle);
   }
 }
 
-void loop_colors() {
+void loop_colors(int startAngle) {
   shouldStopLooping = false;
 
-  for (int i = 0; i < 360; i++) {
+  for (int i = startAngle; i < 360; i++) {
     if (shouldStopLooping) {
       return;
     }
@@ -87,7 +89,7 @@ void loop_colors() {
     delay(100);
   }
 
-  loop_colors();
+  loop_colors(0);
 }
 
 void setColorFromAngle(int angle)
