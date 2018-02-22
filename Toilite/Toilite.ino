@@ -4,6 +4,8 @@
   Author: Flavio Caetano
 */
 
+#include <EEPROM.h>
+
 typedef struct RGB {
   byte r;
   byte g;
@@ -11,63 +13,89 @@ typedef struct RGB {
 };
 
 RGB rgb(int h);
-void setColor(RGB rgb);
+void setColorFromAngle(int angle);
+void button_pressed();
+void loop_colors();
 
-const int redPin = 4; // PIN 3
-const int bluePin = 0; // PIN 5
-const int greenPin = 1  ; // PIN 6
+const int RED_PIN = 4; // PIN 3
+const int GREEN_PIN = 1; // PIN 6
+const int BLUE_PIN = 0; // PIN 5
 
 const int BUTTON = 2; // PIN 7
-int buttonPreviousRead = LOW;
-int isFixed = false;
 
-const int PIR = 4;
-
-RGB color;
+int currentAngle;
+bool shouldStopLooping = false;
 
 void setup()
 {
-//  Serial.begin(9600); 
-  
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BLUE_PIN, OUTPUT);
 
   pinMode(BUTTON, INPUT);
-  pinMode(PIR, INPUT);
-}
 
-void loop()
-{
-  for (int i = 0; i < 3600; i++) {
-    int button = digitalRead(BUTTON);
+  // FOR ATTINY85
+  GIMSK = 0b00100000;    // turns on pin change interrupts
+  PCMSK = 0b00000100;    // turn on interrupts on pins PB2
+  sei();                 // enables interrupts
 
-    if (button == HIGH && buttonPreviousRead != HIGH) {
-      isFixed = !isFixed;
-    }
+  int addr0 = EEPROM.read(0);
+  int addr1 = EEPROM.read(1);
 
-    buttonPreviousRead = button;
+  int storedAngle = (addr0 + (addr1 << 8));
+  setColorFromAngle(storedAngle);
 
-//    Serial.println(digitalRead(PIR));
-//    Serial.print(button);
-//    Serial.print(" - ");
-//    Serial.println(isFixed);
+  attachInterrupt(digitalPinToInterrupt(BUTTON), button_pressed, RISING);
 
-    if (!isFixed) {
-      color = rgb(i / 10);
-    }
-
-    setColor(color);
-
-    delay(10);
+  if (storedAngle == 0) {
+    loop_colors();
   }
 }
 
-void setColor(RGB rgb)
+void loop() {
+  // Empty
+}
+
+void button_pressed() {
+  if (EEPROM.read(0) == 0) {
+    int angle = currentAngle;
+    EEPROM.write(0, angle % 256);
+    EEPROM.write(1, angle >> 8);
+
+    shouldStopLooping = true;
+  }
+  else {
+    // Clears EEPROM
+    EEPROM.write(0, 0);
+    EEPROM.write(1, 0);
+
+    loop_colors();
+  }
+}
+
+void loop_colors() {
+  shouldStopLooping = false;
+
+  for (int i = 0; i < 360; i++) {
+    if (shouldStopLooping) {
+      return;
+    }
+
+    currentAngle = i;
+  	setColorFromAngle(i);
+
+    delay(100);
+  }
+
+  loop_colors();
+}
+
+void setColorFromAngle(int angle)
 {
-  analogWrite(redPin, rgb.r);
-  analogWrite(greenPin, rgb.g);
-  analogWrite(bluePin, rgb.b);
+  RGB color = rgb(angle);
+  analogWrite(RED_PIN, color.r);
+  analogWrite(GREEN_PIN, color.g);
+  analogWrite(BLUE_PIN, color.b);
 }
 
 
