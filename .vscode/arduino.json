@@ -1,0 +1,6 @@
+{
+    "board": "attiny:avr:ATtinyX5",
+    "configuration": "cpu=attiny25,clock=internal1",
+    "sketch": "Toilite/Toilite.ino",
+    "port": "/dev/cu.usbserial-AL021UHU"
+}
