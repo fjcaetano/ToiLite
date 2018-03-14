@@ -12,132 +12,88 @@
 
 #define BUTTON PB2 // PIN 7
 
-#define MAX_ANGLE 256
-
-typedef struct RGB {
-  char r;
-  char g;
-  char b;
-};
-
-RGB rgb(char h);
 void setColorFromAngle(char angle);
-void button_pressed();
-void loop_colors(char startAngle);
+void loop(char currentAngle);
 
-char currentAngle;
-bool shouldStopLooping = false;
+bool isButtonPressed = false;
 
-void setup()
-{
-//  pinMode(RED_PIN, OUTPUT);
-//  pinMode(GREEN_PIN, OUTPUT);
-//  pinMode(BLUE_PIN, OUTPUT);
-
+int main(void) {
+  initVariant();
+  
   // Setting output mode for pins
   DDRB |= (1 << RED_PIN);
   DDRB |= (1 << GREEN_PIN);
   DDRB |= (1 << BLUE_PIN);
 
-//  pinMode(BUTTON, INPUT);
+  // Set BUTTON as pull-up
+  PORTB |= (1 << BUTTON);
 
-  randomSeed(analogRead(0));
-
-  // FOR ATTINY85
-  GIMSK = 0b00100000;    // turns on pin change interrupts
-  PCMSK = 0b00000100;    // turn on interrupts on pins PB2
-  sei();                 // enables interrupts
-
-  currentAngle = EEPROM.read(0);
+  char currentAngle = EEPROM.read(0);
   setColorFromAngle(currentAngle);
 
-  attachInterrupt(BUTTON, button_pressed, RISING);
-
   if (currentAngle == 0) {
-    loop_colors(random(MAX_ANGLE));
+    currentAngle = analogRead(PB3);
+  }
+
+  while (true) {
+    loop(currentAngle);
+    currentAngle = (currentAngle + 1) % 256;
   }
 }
 
-void loop() {
-  // Empty
-}
-
-void button_pressed() {
+void loop(char currentAngle) {
   if (EEPROM.read(0) == 0) {
-    char angle = currentAngle;
-    EEPROM.write(0, angle);
-
-    shouldStopLooping = true;
+    setColorFromAngle(currentAngle);
   }
-  else {
-    // Clears EEPROM
-    EEPROM.write(0, 0);
 
-    loop_colors(currentAngle);
+  if ((PINB & (1 << BUTTON)) != 0) {
+    isButtonPressed = false;
+    _delay_ms(100);
+    return;
+  }
+
+  if (!isButtonPressed) {
+    isButtonPressed = true;
+    EEPROM.write(0, (EEPROM.read(0) == 0) ? currentAngle : 0);
   }
 }
 
-void loop_colors(char startAngle) {
-  shouldStopLooping = false;
-
-  for (char i = startAngle; i < MAX_ANGLE; i++) {
-    if (shouldStopLooping) {
-      return;
-    }
-
-    currentAngle = i;
-    setColorFromAngle(i);
-
-    delay(100);
-  }
-
-  loop_colors(0);
-}
-
-void setColorFromAngle(char angle)
-{
-  RGB color = rgb(angle);
-
- analogWrite(RED_PIN, color.r);
-//  sbi(TCCR0A, COM0A1);
-//  OCR0A = color.r;
-
-//  analogWrite(GREEN_PIN, color.g);
-//  sbi(TCCR0A, COM0B1);
-//  OCR0B = color.g;
-
-//  analogWrite(BLUE_PIN, color.b);
-//  sbi(TCCR0A, COM0A1);
-//  OCR0A = color.b;
-}
-
-
-RGB rgb(char angle)
-{
-  float sector = float(angle % MAX_ANGLE) / float(MAX_ANGLE / 6); // Sector
-  char i = floor(sector);
-  float f = sector - i; // Factorial part of h
-
-  float q = (1 - f);
-
-  switch (i) {
+void setColorFromAngle(char angle) {
+  float sector = float(angle * 6) / 256;
+  switch (int(floor(sector))) {
     case 0:
-      return {0xff, char(f * 0xff), 0};
+      analogWrite(RED_PIN, (sector - floor(sector)) * 0xff);
+      analogWrite(GREEN_PIN, 0);
+      analogWrite(BLUE_PIN, 0);
+      break;
 
     case 1:
-      return {char(q * 0xff), 0xff, 0};
+      analogWrite(RED_PIN, 0xff);
+      // analogWrite(GREEN_PIN, 0);
+      analogWrite(BLUE_PIN, (sector - floor(sector)) * 0xff);
+      break;
 
     case 2:
-      return {0, 0xff, char(f * 0xff)};
+      // analogWrite(RED_PIN, 0xff);
+      analogWrite(GREEN_PIN, (sector - floor(sector)) * 0xff);
+      analogWrite(BLUE_PIN, 0xff);
+      break;
 
     case 3:
-      return {0, char(q * 0xff), 0xff};
+      analogWrite(RED_PIN, (1 - (sector - floor(sector))) * 0xff);
+      analogWrite(GREEN_PIN, 0xff);
+      // analogWrite(BLUE_PIN, 0xff);
+      break;
 
     case 4:
-      return {char(f * 0xff), 0, 0xff};
+      analogWrite(RED_PIN, 0);
+      // analogWrite(GREEN_PIN, 0xff);
+      analogWrite(BLUE_PIN, (1 - (sector - floor(sector))) * 0xff);
 
-    default:
-      return {0xff, 0, char(q * 0xff)};
+    case 5:
+      // analogWrite(RED_PIN, 0);
+      analogWrite(GREEN_PIN, (1 - (sector - floor(sector))) * 0xff);
+      analogWrite(BLUE_PIN, 0);
+      break;
   }
 }
-
