@@ -6,6 +6,12 @@
 
 #include <EEPROM.h>
 
+#define RED_PIN PB4 // PIN 3
+#define GREEN_PIN PB1 // PIN 6
+#define BLUE_PIN PB0 // PIN 5
+
+#define BUTTON PB2 // PIN 7
+
 typedef struct RGB {
   byte r;
   byte g;
@@ -17,52 +23,51 @@ void setColorFromAngle(int angle);
 void button_pressed();
 void loop_colors(int startAngle);
 
-const int RED_PIN = 4; // PIN 3
-const int GREEN_PIN = 1; // PIN 6
-const int BLUE_PIN = 0; // PIN 5
-
-const int BUTTON = 2; // PIN 7
-
 int currentAngle;
-bool shouldStopLooping = false;
+volatile bool shouldStopLooping = false;
 
-void setup()
-{
+int main(void) {
+  init();
+  initVariant();
+
   pinMode(RED_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(BLUE_PIN, OUTPUT);
 
-  pinMode(BUTTON, INPUT);
+  pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(A3, INPUT);
 
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(A3));
 
   // FOR ATTINY85
-  GIMSK = 0b00100000;    // turns on pin change interrupts
-  PCMSK = 0b00000100;    // turn on interrupts on pins PB2
+  GIMSK |= (1 << PCIE);    // turns on pin change interrupts
+  PCMSK |= (1 << PCINT2);    // turn on interrupts on pins PB2
   sei();                 // enables interrupts
 
   int addr0 = EEPROM.read(0);
   int addr1 = EEPROM.read(1);
 
   currentAngle = (addr0 + (addr1 << 8));
-  setColorFromAngle(currentAngle);
 
-  attachInterrupt(digitalPinToInterrupt(BUTTON), button_pressed, RISING);
+  if (currentAngle != 0) {
+    setColorFromAngle(currentAngle);
+    shouldStopLooping = true;
+  }
+  else {
+    currentAngle = random(360);
+  }
 
-  if (currentAngle == 0) {
-    loop_colors(random(360));
+  while (true) {
+    loop_colors(currentAngle);
   }
 }
 
-void loop() {
-  // Empty
-}
-
-void button_pressed() {
+ISR(PCINT0_vect) {
+  if (digitalRead(BUTTON) == HIGH) return;
+  
   if (EEPROM.read(0) == 0) {
-    int angle = currentAngle;
-    EEPROM.write(0, angle % 256);
-    EEPROM.write(1, angle >> 8);
+    EEPROM.write(0, currentAngle % 256);
+    EEPROM.write(1, currentAngle >> 8);
 
     shouldStopLooping = true;
   }
@@ -71,25 +76,22 @@ void button_pressed() {
     EEPROM.write(0, 0);
     EEPROM.write(1, 0);
 
-    loop_colors(currentAngle);
+    shouldStopLooping = false;
   }
 }
 
 void loop_colors(int startAngle) {
-  shouldStopLooping = false;
-
-  for (int i = startAngle; i < 360; i++) {
+  for (currentAngle = startAngle; currentAngle < 360; currentAngle++) {
     if (shouldStopLooping) {
       return;
     }
 
-    currentAngle = i;
-  	setColorFromAngle(i);
+    setColorFromAngle(currentAngle);
 
     delay(100);
   }
 
-  loop_colors(0);
+  currentAngle = 0;
 }
 
 void setColorFromAngle(int angle)
